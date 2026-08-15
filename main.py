@@ -3,10 +3,9 @@ from sqlalchemy.orm import Session
 from pwdlib import PasswordHash
 
 
-
 from config import  engine,Base,sessionlocal
 from config_models.user import SQUser
-from models.user import User
+from models.user import User,UserUpdate
 
 
 app = FastAPI()
@@ -72,11 +71,64 @@ def create_new_user(user:User,db: Session = Depends(get_db)):
 
     return " User successfully registered "
 
+#==============update user details=========#
+
+@app.patch("/users/{user_id}")
+def update_user_details(user_id:int,user:UserUpdate,db: Session = Depends(get_db)):
+
+    existing_user =db.query(SQUser).filter(SQUser.user_id == user_id).first()
+    if not existing_user:
+        raise HTTPException(status_code=404,detail="User not found")
 
 
+    update_user = user.model_dump(exclude_unset=True)
+
+    if "username" in update_user:
+        existing_username =db.query(SQUser).filter(SQUser.username == update_user["username"],SQUser.user_id != user_id).first()
+
+        if existing_username:
+            raise HTTPException(status_code=400,detail="Username already exists")
+
+        existing_user.username = update_user["username"]
+
+    
+    if "email" in update_user:
+        existing_email = db.query(SQUser).filter(SQUser.email == update_user["email"],SQUser.user_id != user_id).first()
+
+        if existing_email:
+            raise HTTPException(status_code=400,detail="Email already exists")
+
+        existing_user.email = update_user["email"]
 
 
+    if "phone_number" in update_user:
+        existing_phone = db.query(SQUser).filter(SQUser.phone_number == update_user["phone_number"],SQUser.user_id != user_id).first()
 
+        if existing_phone:
+            raise HTTPException(status_code=400,detail="Phone number already exists")
 
+        existing_user.phone_number = update_user["phone_number"]
 
+    if "password" in update_user:
+        same_password = password_hash.verify(update_user["password"], existing_user.password)
+        if same_password:
+            raise HTTPException(status_code=400, detail="new password can't be same as old password")
 
+        existing_user.password = password_hash.hash(update_user["password"])
+
+    db.commit()
+
+    return "user details updated sucessfully"
+
+#======delete user details=======#
+
+@app.delete("/users/{user_id}")
+def delete_user(user_id:int,db: Session = Depends(get_db)):
+
+    existing_user = db.query(SQUser).filter(SQUser.user_id == user_id).first()
+
+    if not  existing_user:
+            raise HTTPException( status_code=404, detail = "User not found" )
+    db.delete(existing_user)
+    db.commit()
+    return "user deleted sucessfully"
