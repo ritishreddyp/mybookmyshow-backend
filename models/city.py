@@ -1,7 +1,9 @@
 from pydantic import BaseModel 
+from datetime import datetime
 
-
-class Cities(BaseModel):
-    cities_id: int
+class City(BaseModel):
+    
     city_name: str
     state: str
+    
+ 

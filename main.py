@@ -1,12 +1,13 @@
 from fastapi import Depends,FastAPI,HTTPException
 from sqlalchemy.orm import Session
 from pwdlib import PasswordHash
-
-
 from config import  engine,Base,sessionlocal
+
 from config_models.user import SQUser
 from models.user import User,UserUpdate
 
+from config_models.city import SQcity
+from models.city import City
 
 app = FastAPI()
 
@@ -132,3 +133,27 @@ def delete_user(user_id:int,db: Session = Depends(get_db)):
     db.delete(existing_user)
     db.commit()
     return "user deleted sucessfully"
+
+#---------cites----------#
+@app.get("/city")
+def get_all_cities(db: Session = Depends(get_db)):
+    return db.query(SQcity).all()
+
+@app.get("/city/{city_id}")
+def get_city_id(city_id:int,db: Session = Depends(get_db)):
+    cities = db.query(SQcity).filter(SQcity.city_id == city_id).first()
+
+    if cities is None:
+        raise HTTPException(status_code=404, detail="City not found")
+    return cities
+
+@app.post("/city")
+def add_city(city:City,db: Session = Depends(get_db)):
+    existing_city =db.query(SQcity).filter((SQcity.city_name == city.city_name)).first()
+    if existing_city:
+        raise HTTPException(status_code=400,detail="city already exists")
+    new_city = SQcity(city_name=city.city_name,state=city.state)
+
+    db.add(new_city)
+    db.commit()
+    return " city added successfully"
