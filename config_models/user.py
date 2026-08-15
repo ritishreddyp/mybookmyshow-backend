@@ -3,9 +3,9 @@ from datetime import datetime
 from config import Base
 
 
-class user(Base):
+class SQUser(Base):
 
-    __tablename__ = "Users"
+    __tablename__ = "users"
     user_id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
