@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String,DateTime ,Float,ForeignKey
 from datetime import datetime
 from config import Base
-
+from sqlalchemy.orm import relationship
 
 class SQbooking_section(Base):
 
@@ -13,3 +13,9 @@ class SQbooking_section(Base):
     booking_status = Column(String, default= "Pending", nullable=False)
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+
+    user = relationship("SQUser", back_populates="bookings")
+    show = relationship("SQshows", back_populates="bookings")
+    booking_items = relationship("SQbooking_items", back_populates="booking", cascade="all, delete-orphan")
+    payments = relationship("SQpayments", back_populates="booking", cascade="all, delete-orphan")
+    tickets = relationship("SQtickets", back_populates="booking", cascade="all, delete-orphan")

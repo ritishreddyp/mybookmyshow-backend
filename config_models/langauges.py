@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String,DateTime,ForeignKey
 from datetime import datetime
 from config import Base
-
+from sqlalchemy.orm import relationship
 
 class SQlanguages(Base):
 
@@ -12,3 +12,6 @@ class SQlanguages(Base):
     status = Column(String, default="avaliable", nullable=False)
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+
+    movie = relationship("SQmovies", back_populates="languages")
+    shows = relationship("SQshows", back_populates="language")

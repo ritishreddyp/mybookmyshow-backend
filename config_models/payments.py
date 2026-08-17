@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String,DateTime,Float,ForeignKey
 from datetime import datetime
 from config import Base
-
+from sqlalchemy.orm import relationship
 
 class SQpayments(Base):
 
@@ -14,3 +14,5 @@ class SQpayments(Base):
     payment_status = Column(String, default="Processing", nullable=False)
     payment_date = Column(DateTime, onupdate=datetime.now, nullable=False)
     created_at =  Column(DateTime, default=datetime.now, nullable=False)
+
+    booking = relationship("SQbooking_section", back_populates="payments")

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String,DateTime,ForeignKey,Float
 from datetime import datetime
 from config import Base
-
+from sqlalchemy.orm import relationship
 
 class SQbooking_items(Base):
 
@@ -12,3 +12,6 @@ class SQbooking_items(Base):
     price = Column(Float,nullable=False)
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
+
+    booking = relationship("SQbooking_section", back_populates="booking_items")
+    show_seat = relationship("SQshow_seats", back_populates="booking_items")

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String,DateTime
 from datetime import datetime
 from config import Base
-
+from sqlalchemy.orm import relationship
 
 class SQcity(Base):
 
@@ -13,4 +13,4 @@ class SQcity(Base):
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 
-    
+    movies = relationship("SQmovies", back_populates="city", cascade="all, delete-orphan")
