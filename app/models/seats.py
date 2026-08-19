@@ -1,13 +1,13 @@
 from sqlalchemy import Column, Integer, String,DateTime,ForeignKey
 from datetime import datetime
-from src.app.core.config import Base
+from app.core.db import Base
 from sqlalchemy.orm import relationship
 
 class SQseats(Base):
 
     __tablename__ = "Seats"
-    seat_id = Column(Integer,primary_key=True,autoincrement=True)
-    screen_id = Column(Integer,ForeignKey("Screens.screen_id"),nullable=False)
+    seat_id = Column(Integer, primary_key=True,autoincrement=True)
+    screen_id = Column(Integer, ForeignKey("Screens.screen_id"),nullable=False)
     seat_number = Column(String, nullable=False)
     seat_row = Column(String, nullable=False)
     seat_type = Column(String, nullable=False)

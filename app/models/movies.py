@@ -1,13 +1,12 @@
 from sqlalchemy import Column, Integer, String,DateTime,ForeignKey,Date
 from datetime import datetime
-from src.app.core.config import Base
+from app.core.db import Base
 from sqlalchemy.orm import relationship
 
 class SQmovies(Base):
 
     __tablename__ = "Movies"
-    movie_id = Column(Integer,primary_key=True,autoincrement=True)
-    
+    movie_id = Column(Integer, primary_key=True,autoincrement=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
     genre = Column(String, nullable=False)
