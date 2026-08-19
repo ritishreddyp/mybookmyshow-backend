@@ -14,9 +14,9 @@ class Settings(BaseSettings):
 
 
     #jwt
-    SECRET_KEY: str 
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+    SECRET_KEY : str 
+    ALGORITHM : str = "HS256"
+    ACCESS_TOKEN_TIME : int = 60 * 24
 
     @property
     def db_url(self) -> str:
