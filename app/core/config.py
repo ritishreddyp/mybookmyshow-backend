@@ -1,9 +1,29 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-db_url = "postgresql://postgres:Ritishreddy@localhost:5432/mybookmyshow"
+class Settings(BaseSettings):
 
-engine = create_engine(db_url)
-sessionlocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    PROJECT_NAME: str = "MyBookMyShow API"
+    API_V1_STR: str = "/api/v1"
 
-Base = declarative_base()
+    #db_url
+    DB_USER: str 
+    DB_PASSWORD: str 
+    DB_HOST: str 
+    DB_PORT: int = 5432
+    DB_NAME: str 
+
+
+    #jwt
+    SECRET_KEY: str 
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24
+
+    @property
+    def db_url(self) -> str:
+
+        return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+
+settings = Settings()
