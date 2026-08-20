@@ -36,3 +36,5 @@ def get_current_user(db: Session = Depends(get_db),token: str = Depends(oauth2_s
         raise user_details_exception
 
     return user
+
+
