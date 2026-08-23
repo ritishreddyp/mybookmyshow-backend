@@ -13,12 +13,12 @@ class MovieCreate(BaseModel):
 
 
 class MovieUpdate(BaseModel):
-    title : str |  None = None
-    description : str | None = None
-    genre : str |  None = None
-    duration_minutes : int | None = None
-    release_date : date |  None = None
-    poster_url : str | None = None
+    title: str | None = None
+    description: str | None = None
+    genre: str | None = None
+    duration_minutes: int | None = None
+    release_date: date | None = None
+    poster_url: str | None = None
     status: str | None = None
 
 

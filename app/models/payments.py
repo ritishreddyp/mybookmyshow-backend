@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String,DateTime,Float,ForeignKey
 from datetime import datetime
-from src.app.core.config import Base
+from app.core.db import Base
 from sqlalchemy.orm import relationship
 
 class SQpayments(Base):
