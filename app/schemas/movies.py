@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from pydantic import BaseModel, ConfigDict
-
+from app.schemas.languages import LanguageDetails
 
 class MovieCreate(BaseModel):
     title : str
@@ -33,4 +33,6 @@ class MovieDetails(BaseModel):
     status : str
     created_at: datetime
     updated_at: datetime
+    languages: list[LanguageDetails] = []
     model_config = ConfigDict(from_attributes=True)
+

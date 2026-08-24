@@ -1,7 +1,19 @@
 from datetime import datetime, timezone
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey,Table,UniqueConstraint
 from sqlalchemy.orm import relationship
 from app.core.db import Base
+
+
+
+
+
+movie_languages = Table("movie_languages",Base.metadata,
+                        
+    Column("movie_id", Integer, ForeignKey("Movies.movie_id", ondelete="CASCADE"), primary_key=True),
+    Column("language_id", Integer, ForeignKey("languages.language_id", ondelete="CASCADE"), primary_key=True),
+    UniqueConstraint("movie_id", "language_id", name="uq_movie_language"))
+
+
 
 class SQlanguages(Base):
     __tablename__ = "languages"
@@ -13,5 +25,6 @@ class SQlanguages(Base):
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
 
-    movie = relationship("SQmovies", back_populates="languages")
-    shows = relationship("SQshows", back_populates="language")
+    movies = relationship("SQmovies", secondary=movie_languages, back_populates="languages")
+
+

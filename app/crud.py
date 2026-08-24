@@ -10,7 +10,8 @@ from app.schemas.city import CityCreate, CityUpdate,CityDetails
 from app.models.movies import SQmovies
 from app.schemas.movies import MovieCreate,MovieUpdate,MovieDetails
 
-
+from app.models.languages import SQlanguages
+from app.schemas.languages import LanguageCreate,LanguageDetails,LanguageUpdate
 
 from app.core.security import password_hash
 
@@ -234,3 +235,140 @@ def movie_update(movie_id: int, movie: MovieUpdate, db: Session) -> SQmovies:
 
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="Failed to update movie details")
+
+
+#movie delete
+def delete_movie(movie_id: int, db: Session):
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+
+    if not movie:
+            raise HTTPException(status_code=404, detail="City not found")
+
+    db.delete(movie)
+    db.commit()
+
+    return " movie deleted succesfully "
+
+
+# to get all movies
+
+def get_all_movies(db: Session):
+    movies = db.query(SQmovies).all()
+
+    return movies
+
+# veiw one movie
+
+def get_movie_id(movie_id : int, db: Session):
+    movie_detail = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+    if movie_id is None:
+                raise HTTPException(status_code=404, detail="Usern ot found")
+    
+    return movie_detail
+
+
+#---------------------------------------------------------------langauges -----------------------------------------------------
+# add language to movies 
+
+def create_language(lang_in: LanguageCreate, db: Session):
+    existing = db.query(SQlanguages).filter(SQlanguages.language_name.ilike(lang_in.language_name)).first()
+
+    if existing:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT)
+
+    
+    db_lang = SQlanguages(language_name=lang_in.language_name.capitalize(), status="available")
+    db.add(db_lang)
+    db.commit()
+    db.refresh(db_lang)
+
+    return db_lang
+
+#get all languages
+
+def get_all_languages(db: Session):
+    return db.query(SQlanguages).all()
+
+
+# assign multiple movies to language 
+
+def assign_languages_to_movie(movie_id: int, language_ids: list[int], db: Session):
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    
+    unique_lang_ids = list(set(language_ids))
+
+    languages = db.query(SQlanguages).filter(SQlanguages.language_id.in_(unique_lang_ids)).all()
+    
+    if len(languages) != len(unique_lang_ids):
+
+        raise HTTPException(status_code=404, detail="One or more invalid language IDs provided")
+    
+    for lang in languages:
+        if lang not in movie.languages : movie.languages.append(lang)
+            
+    db.commit()
+    db.refresh(movie)
+
+
+    return movie
+
+
+# select language to display all movies in that language
+def get_movies_by_language_id(language_id: int, db: Session):
+    language = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+
+    if not language:
+        raise HTTPException(status_code=404, detail="Language not found")
+    
+    return {
+        "language_id": language.language_id,
+        "language_name": language.language_name,
+        "movies": language.movies
+    }
+
+# remove movie from language
+
+def remove_language_from_movie(movie_id: int, language_id: int, db: Session):
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+    language = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+    
+    if not movie or not language:
+
+        raise HTTPException(status_code=404, detail="Movie or Language not found")
+        
+    if language in movie.languages:
+
+        movie.languages.remove(language)
+        db.commit()
+
+        return {"message": f"Successfully removed language {language.language_name} from movie ID {movie_id}"}
+    
+    raise HTTPException(status_code=400, detail="Movie is not associated with this language")
+#----------------------------------------------------------theater--------------------------------------------------------------
+
+
+#----------------------------------------------------------screens---------------------------------------------------------------
+
+
+#-----------------------------------------------------------seats----------------------------------------------------------------
+
+
+#------------------------------------------------------- show seats -------------------------------------------------------------
+
+
+#-------------------------------------------------------booking section----------------------------------------------------------
+
+
+#------------------------------------------------------- booking items-----------------------------------------------------------
+
+
+
+#------------------------------------------------------- payments --------------------------------------------------------------
+
+
+
+#-------------------------------------------------------  tickets --------------------------------------------------------------

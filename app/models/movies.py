@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String,DateTime,Date
 from datetime import datetime
 from app.core.db import Base
 from sqlalchemy.orm import relationship
+from app.models.languages import movie_languages
 
 class SQmovies(Base):
 
@@ -17,6 +18,6 @@ class SQmovies(Base):
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 
-    languages = relationship("SQlanguages", back_populates="movie", cascade="all, delete-orphan")
+    languages = relationship("SQlanguages", secondary=movie_languages, back_populates="movies")
     shows = relationship("SQshows", back_populates="movie")
     
