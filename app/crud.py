@@ -13,6 +13,15 @@ from app.schemas.movies import MovieCreate,MovieUpdate,MovieDetails
 from app.models.languages import SQlanguages
 from app.schemas.languages import LanguageCreate,LanguageDetails,LanguageUpdate,MovieLanguageAssignment
 
+from app.models.theatres import SQtheaters
+from app.schemas.theatres import TheatreCreate,TheatreUpdate,TheatreDetails
+
+from app.models.screens import SQscreens
+from app.schemas.screens import ScreenCreate,ScreenUpdate,ScreenDetails
+
+
+
+
 from app.core.security import password_hash
 
 
@@ -371,7 +380,7 @@ def remove_language_from_movie(movie_id: int, language_id: int, db: Session):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Language is not assigned to this movie")
 
     movie.languages.remove(lang)
-    
+
     try:
         db.commit()
     except Exception as e:
@@ -413,3 +422,84 @@ def delete_language(language_id: int, db: Session):
 
 
 # -----------------------------------------------------------theaters-------------------------------------------------------------- 
+
+# create theaters 
+def create_theater(theater: TheatreCreate, db: Session):
+
+    city = db.query(SQcity).filter(SQcity.city_id == theater.city_id).first()
+
+    if not city:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="City not found")
+
+    new_theater = SQtheaters(**theater.model_dump())
+
+    try:
+        db.add(new_theater)
+        db.commit()
+        db.refresh(new_theater)
+
+    except Exception as e:
+        db.rollback()
+
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create theater: {e}")
+
+    return "Theater added successfully"
+# update theaters
+def update_theater(theater_id: int, theater_update: TheatreUpdate, db: Session):
+    theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
+
+    if not theater:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
+
+    update_data = theater_update.model_dump(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        setattr(theater, key, value)
+
+    try:
+
+        db.commit()
+        db.refresh(theater)
+
+    except Exception as e:
+        db.rollback()
+
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update theater: {e}")
+
+    return "Theater updated successfully"
+
+#get all theaters
+def get_all_theaters(city_id: int | None, db: Session):
+    query = db.query(SQtheaters)
+    if city_id:
+        query = query.filter(SQtheaters.city_id == city_id)
+    return query.all()
+
+# get theater by id
+
+def get_theater_by_id(theater_id: int, db: Session):
+    theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
+    if not theater:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
+    return theater
+
+#remvoe theaters
+def delete_theater(theater_id: int, db: Session):
+    theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
+
+    if not theater:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
+
+    try:
+        db.delete(theater)
+        db.commit()
+
+    except Exception as e:
+
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete theater: {e}")
+
+    return "Theater deleted successfully"
+
+
+#-------------------------------------------------------screens---------------------------------------------------
