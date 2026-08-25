@@ -3,6 +3,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class ShowCreate(BaseModel):
+    theater_id: int
     screen_id : int
     movie_id : int
     language_id : int

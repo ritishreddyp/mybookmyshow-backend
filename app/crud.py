@@ -23,6 +23,8 @@ from app.schemas.screens import ScreenCreate,ScreenUpdate,ScreenDetails
 from app.models.seats import SQseats
 from app.schemas.seats import SeatCreate
 
+from app.models.shows import SQshows
+from app.schemas.shows import ShowCreate, ShowUpdate
 
 
 from app.core.security import password_hash
@@ -664,3 +666,98 @@ def delete_seats_for_screen(theater_id: int, screen_id: int, db: Session):
         raise HTTPException( status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete seats for screen: {e}" )
 
     return f"Successfully deleted {deleted_count} seats for screen {screen_id}"
+
+
+#----------------------------------------------------shows---------------------------------------------------------------
+
+def create_show(show: ShowCreate, db: Session):
+    screen = db.query(SQscreens).filter(SQscreens.theater_id == show.theater_id, SQscreens.screen_id == show.screen_id).first()
+
+    if not screen:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found in this theater")
+
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == show.movie_id).first()
+
+    if not movie:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Movie not found")
+
+    language = db.query(SQlanguages).filter(SQlanguages.language_id == show.language_id).first()
+    
+    if not language:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Language not found")
+
+    new_show = SQshows(
+        movie_id=show.movie_id,
+        screen_id=screen.id,
+        language_id=show.language_id,
+        show_date=show.show_date,
+        show_time=show.show_time,
+        base_price=show.base_price,
+        status="active" )
+
+    try:
+        db.add(new_show)
+        db.commit()
+        db.refresh(new_show)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create show: {e}")
+
+    return "Show scheduled successfully"
+
+def update_show(show_id: int, show_update: ShowUpdate, db: Session):
+    show = db.query(SQshows).filter(SQshows.show_id == show_id).first()
+    if not show:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Show not found")
+
+    update_data = show_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(show, key, value)
+
+    try:
+        db.commit()
+        db.refresh(show)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update show: {e}")
+
+    return "Show updated successfully"
+
+def delete_show(show_id: int, db: Session):
+    show = db.query(SQshows).filter(SQshows.show_id == show_id).first()
+
+    if not show:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Show not found")
+
+    try:
+        db.delete(show)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete show: {e}")
+
+    return "Show deleted successfully"
+
+def get_shows(
+    city_id: int | None = None, 
+    theater_id: int | None = None, 
+    local_screen_id: int | None = None, 
+    movie_id: int | None = None, 
+    language_id: int | None = None, 
+    db: Session = None):
+
+    query = db.query(SQshows).join(SQscreens, SQshows.screen_id == SQscreens.id).join(SQtheaters, SQscreens.theater_id == SQtheaters.theater_id)
+
+    if city_id:
+        query = query.filter(SQtheaters.city_id == city_id)
+    if theater_id:
+        query = query.filter(SQtheaters.theater_id == theater_id)
+    if local_screen_id:
+        query = query.filter(SQscreens.screen_id == local_screen_id)
+    if movie_id:
+        query = query.filter(SQshows.movie_id == movie_id)
+    if language_id:
+        query = query.filter(SQshows.language_id == language_id)
+
+    return query.all()
