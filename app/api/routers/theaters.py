@@ -43,8 +43,8 @@ def remove_theater(theater_id: int, db: Session = Depends(get_db)):
 # Screens 
 
 @router.post("/{theater_id}/screens/", status_code=status.HTTP_201_CREATED)
-def add_screen(theater_id: int, screen_name: str, screen_type: str, total_seats: int, db: Session = Depends(get_db)):
-    return add_screen_to_theater(theater_id, screen_name, screen_type, total_seats, db)
+def add_screen(theater_id: int, screen_name: str, screen_type: str, db: Session = Depends(get_db)):
+    return add_screen_to_theater(theater_id, screen_name, screen_type, db)
 
 
 @router.get("/{theater_id}/screens/")
