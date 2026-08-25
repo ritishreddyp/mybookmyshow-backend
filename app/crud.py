@@ -11,7 +11,7 @@ from app.models.movies import SQmovies
 from app.schemas.movies import MovieCreate,MovieUpdate,MovieDetails
 
 from app.models.languages import SQlanguages
-from app.schemas.languages import LanguageCreate,LanguageDetails,LanguageUpdate
+from app.schemas.languages import LanguageCreate,LanguageDetails,LanguageUpdate,MovieLanguageAssignment
 
 from app.core.security import password_hash
 
@@ -202,24 +202,28 @@ def create_movie(movie: MovieCreate , db:Session):
 
 
   # update movie
-def movie_update(movie_id: int, movie: MovieUpdate, db: Session) -> SQmovies:
+
+def movie_update(movie_id: int, movie: MovieUpdate, db: Session):
+
     existing_movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
     if not existing_movie:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Movie not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="movie not found" )
 
-    update_data  = movie.model_dump(exclude_unset=True)
+    update_data = movie.model_dump(exclude_unset=True)
 
-
-
+ 
     new_title = update_data.get("title", existing_movie.title)
     new_release_date = update_data.get("release_date", existing_movie.release_date)
 
     if "title" in update_data or "release_date" in update_data:
-        duplicate_movie = db.query(SQmovies).filter(SQmovies.title == new_title,SQmovies.release_date == new_release_date,SQmovies.movie_id != movie_id).first()
+        duplicate_movie = db.query(SQmovies).filter(
+            SQmovies.title == new_title,
+            SQmovies.release_date == new_release_date,
+            SQmovies.movie_id != movie_id).first()
+
 
         if duplicate_movie:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="A movie with this title and release date already exists")
-
 
     for field, value in update_data.items():
         setattr(existing_movie, field, value)
@@ -229,14 +233,15 @@ def movie_update(movie_id: int, movie: MovieUpdate, db: Session) -> SQmovies:
         db.commit()
         db.refresh(existing_movie)
 
-        return existing_movie
+        return " Movie details updated sucessfully "
     
-    except Exception:
+    except Exception as e:
 
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,detail="Failed to update movie details")
 
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update movie details: {str(e)}" )
 
+    
 #movie delete
 def delete_movie(movie_id: int, db: Session):
     movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
@@ -268,107 +273,143 @@ def get_movie_id(movie_id : int, db: Session):
 
 
 #---------------------------------------------------------------langauges -----------------------------------------------------
-# add language to movies 
+# add language 
+def create_language(language: LanguageCreate, db: Session):
+    if db.query(SQlanguages).filter_by(language_name=language.language_name).first():
 
-def create_language(lang_in: LanguageCreate, db: Session):
-    existing = db.query(SQlanguages).filter(SQlanguages.language_name.ilike(lang_in.language_name)).first()
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Language already exists")
 
-    if existing:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT)
+    new_lang = SQlanguages(language_name=language.language_name, status="available")
 
+    try:
+
+        db.add(new_lang)
+        db.commit()
+        db.refresh(new_lang)
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Failed: {e}")
     
-    db_lang = SQlanguages(language_name=lang_in.language_name.capitalize(), status="available")
-    db.add(db_lang)
-    db.commit()
-    db.refresh(db_lang)
+    return "Language added successfully"
 
-    return db_lang
+# update language 
+def update_language(language_id: int, language: LanguageUpdate, db: Session):
+    lang = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+    if not lang:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Language not found")
 
-#get all languages
+    update_data = language.model_dump(exclude_unset=True)
+    
+    if "language_name" in update_data:
+        duplicate = db.query(SQlanguages).filter( SQlanguages.language_name == update_data["language_name"], SQlanguages.language_id != language_id).first()
+        if duplicate:
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Language already exists")
 
-def get_all_languages(db: Session):
-    return db.query(SQlanguages).all()
+    for key, value in update_data.items():
+        setattr(lang, key, value)
+
+    try:
+
+        db.commit()
+        db.refresh(lang)
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Failed: {e}")
+        
+    return "Language updated successfully"
 
 
-# assign multiple movies to language 
+# assign language to movie 
 
-def assign_languages_to_movie(movie_id: int, language_ids: list[int], db: Session):
+def assign_languages_to_movie(movie_id: int, assignment: MovieLanguageAssignment, db: Session):
     movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
 
     if not movie:
-        raise HTTPException(status_code=404, detail="Movie not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie not found")
 
-    
-    unique_lang_ids = list(set(language_ids))
+    languages = db.query(SQlanguages).filter(SQlanguages.language_id.in_(assignment.language_ids)).all()
 
-    languages = db.query(SQlanguages).filter(SQlanguages.language_id.in_(unique_lang_ids)).all()
-    
-    if len(languages) != len(unique_lang_ids):
+    if len(languages) != len(assignment.language_ids):
 
-        raise HTTPException(status_code=404, detail="One or more invalid language IDs provided")
-    
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "One or more language IDs not found")
+
+    added = False
     for lang in languages:
-        if lang not in movie.languages : movie.languages.append(lang)
-            
-    db.commit()
-    db.refresh(movie)
+        if lang not in movie.languages:
+            movie.languages.append(lang)
+            added = True
 
+    if not added:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Selected languages are already assigned to this movie")
 
-    return movie
+    try:
 
-
-# select language to display all movies in that language
-def get_movies_by_language_id(language_id: int, db: Session):
-    language = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
-
-    if not language:
-        raise HTTPException(status_code=404, detail="Language not found")
-    
-    return {
-        "language_id": language.language_id,
-        "language_name": language.language_name,
-        "movies": language.movies
-    }
-
-# remove movie from language
-
-def remove_language_from_movie(movie_id: int, language_id: int, db: Session):
-    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
-    language = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
-    
-    if not movie or not language:
-
-        raise HTTPException(status_code=404, detail="Movie or Language not found")
-        
-    if language in movie.languages:
-
-        movie.languages.remove(language)
         db.commit()
 
-        return {"message": f"Successfully removed language {language.language_name} from movie ID {movie_id}"}
+    except Exception as e:
+
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Failed: {e}")
+        
+    return "Languages assigned to movie successfully"
+
+# remove language from  movie
+def remove_language_from_movie(movie_id: int, language_id: int, db: Session):
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+    lang = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+
+    if not movie or not lang:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie or Language not found")
+
+    if lang not in movie.languages:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Language is not assigned to this movie")
+
+    movie.languages.remove(lang)
     
-    raise HTTPException(status_code=400, detail="Movie is not associated with this language")
-#----------------------------------------------------------theater--------------------------------------------------------------
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Failed: {e}")
+        
+    return "Language removed from movie successfully"
 
 
-#----------------------------------------------------------screens---------------------------------------------------------------
+# select language to view all movies in selected language
+def get_movies_by_language(language_id: int, db: Session):
+    lang = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+    if not lang:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Language not found")
+    return lang.movies
+
+#  view all available languages of selected movie 
+def get_languages_by_movie(movie_id: int, db: Session):
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+    if not movie:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie not found")
+    return movie.languages
+
+# remove language
+def delete_language(language_id: int, db: Session):
+    lang = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+    if not lang:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Language not found")
+
+    try:
+        db.delete(lang)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, f"Failed: {e}")
+        
+    return "Language deleted successfully"
 
 
-#-----------------------------------------------------------seats----------------------------------------------------------------
 
-
-#------------------------------------------------------- show seats -------------------------------------------------------------
-
-
-#-------------------------------------------------------booking section----------------------------------------------------------
-
-
-#------------------------------------------------------- booking items-----------------------------------------------------------
-
-
-
-#------------------------------------------------------- payments --------------------------------------------------------------
-
-
-
-#-------------------------------------------------------  tickets --------------------------------------------------------------
+# -----------------------------------------------------------theaters-------------------------------------------------------------- 

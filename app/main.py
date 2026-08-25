@@ -7,6 +7,7 @@ from app.models import SQUser,SQcity,SQmovies,SQlanguages,SQtheaters,SQscreens,S
 
 Base.metadata.create_all(bind=engine)
 
+
 app = FastAPI(title="My BookMyShow API")
 
 app.include_router(api_router)
