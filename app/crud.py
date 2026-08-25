@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from app.models.user import SQUser
 from app.schemas.user import UserCreate, UserLogin, UserUpdate,UserDetails
@@ -503,3 +504,85 @@ def delete_theater(theater_id: int, db: Session):
 
 
 #-------------------------------------------------------screens---------------------------------------------------
+
+# add theater to screen 
+
+def add_screen_to_theater(theater_id: int, screen_name: str, screen_type: str, total_seats: int, db: Session):
+    theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
+    if not theater:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
+
+    max_id = db.query(func.max(SQscreens.screen_id)).filter(SQscreens.theater_id == theater_id).scalar()
+    next_screen_id = (max_id or 0) + 1
+
+    new_screen = SQscreens(
+        theater_id=theater_id,
+        screen_id=next_screen_id,  
+        screen_name=screen_name,
+        screen_type=screen_type,
+        total_seats=total_seats,
+        status="active"
+    )
+    
+    try:
+
+        db.add(new_screen)
+        db.commit()
+        db.refresh(new_screen)
+
+    except Exception as e:
+
+        db.rollback()
+
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to add screen: {e}")
+
+    return "Screen added successfully"
+
+# get screens in theater
+
+def get_screens_by_theater(theater_id: int, db: Session):
+    theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
+    if not theater:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
+    return theater.screens
+
+
+# Update Screens
+
+def update_screen(screen_id: int, screen_update: ScreenUpdate, db: Session):
+    screen = db.query(SQscreens).filter(SQscreens.screen_id == screen_id).first()
+    if not screen:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found")
+
+    update_data = screen_update.model_dump(exclude_unset=True)
+    
+    for key, value in update_data.items():
+        setattr(screen, key, value)
+
+    try:
+        db.commit()
+        db.refresh(screen)
+
+    except Exception as e:
+
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update screen: {e}")
+
+    return "Screen updated successfully"
+
+# Delete Screen
+
+def delete_screen(screen_id: int, db: Session):
+    screen = db.query(SQscreens).filter(SQscreens.screen_id == screen_id).first()
+    if not screen:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found")
+    try:
+
+        db.delete(screen)
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete screen: {e}")
+
+    return "Screen deleted successfully"
