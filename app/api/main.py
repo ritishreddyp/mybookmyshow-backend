@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.routers import auth, users,cities,movies,languages,theaters,seats,shows,show_seats,bookings
+from app.api.routers import auth, users,cities,movies,languages,theaters,seats,shows,show_seats,bookings,payments,tickets
 
 api_router = APIRouter()
 
@@ -13,3 +13,5 @@ api_router.include_router(seats.router, prefix="/seats", tags=["seats"])
 api_router.include_router(shows.router, prefix="/shows", tags=["shows"])
 api_router.include_router(show_seats.router, prefix="/show_seats", tags=["show_seats"])
 api_router.include_router(bookings.router,prefix="/bookings", tags=["Bookings & Cart"])
+api_router.include_router(payments.router,prefix="/payments", tags=["payments"])
+api_router.include_router(tickets.router,prefix="/tickets", tags=["tickets"])

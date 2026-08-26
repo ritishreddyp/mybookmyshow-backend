@@ -3,13 +3,6 @@ from pydantic import BaseModel, ConfigDict
 from app.schemas.payments import PaymentDetails
 
 
-class TicketCreate(BaseModel):
-    booking_id : int
-    show_id :  int
-    ticket_code: str
-    ticket_status : str = "Confirmed"
-
-
 class TicketOut(BaseModel):
     ticket_id : int
     booking_id : int

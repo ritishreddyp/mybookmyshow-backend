@@ -12,7 +12,7 @@ class SQpayments(Base):
     payment_method = Column(String, nullable=False)
     amount = Column(Float, nullable=False)
     payment_status = Column(String, default="Processing", nullable=False)
-    payment_date = Column(DateTime, onupdate=datetime.now, nullable=False)
+    payment_date = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
     created_at =  Column(DateTime, default=datetime.now, nullable=False)
 
     booking = relationship("SQbooking_section", back_populates="payments")
