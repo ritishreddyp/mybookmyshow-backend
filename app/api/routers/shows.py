@@ -6,6 +6,8 @@ from app.core.db import get_db
 from app.schemas.shows import ShowCreate, ShowUpdate
 from app.crud import create_show, update_show, delete_show, get_shows
 
+
+
 router = APIRouter()
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -23,3 +25,6 @@ def modify_show(show_id: int, show_update: ShowUpdate, db: Session = Depends(get
 @router.delete("/{show_id}")
 def remove_show(show_id: int, db: Session = Depends(get_db)):
     return delete_show(show_id, db)
+
+
+

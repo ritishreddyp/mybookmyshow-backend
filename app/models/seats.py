@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 class SQseats(Base):
 
     __tablename__ = "Seats"
-    id = Column(Integer, primary_key=True,autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     seat_id = Column(Integer, nullable=False)
     theater_id = Column(Integer, ForeignKey("Theatres.theater_id"), nullable=False)
     screen_id = Column(Integer,ForeignKey("Screens.id", ondelete="CASCADE"),nullable=False)
