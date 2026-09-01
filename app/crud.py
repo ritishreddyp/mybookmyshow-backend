@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 from typing import List
 import uuid
 
+
+
 from app.models.user import SQUser
 from app.schemas.user import UserCreate, UserLogin, UserUpdate,UserDetails
 
@@ -77,18 +79,6 @@ def create_new_user(user: UserCreate, db: Session):
         raise
 
     return " User successfully registered "
-
-# user login 
-
-def login_user(credentials: UserLogin, db: Session):
-
-    user = db.query(SQUser).filter(SQUser.email == credentials.email).first()
-    
-    if not user or not password_hash.verify(credentials.password, user.password):
-
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
-    
-    return  "Login successful"
 
 # Update user details
 
