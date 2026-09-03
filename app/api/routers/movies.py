@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 
-from app.crud import create_movie,movie_update,delete_movie,get_all_movies,get_movie_id
+from app.crud import create_movie,movie_update,delete_movie,get_movie_id,get_active_movies,get_inactive_movies,activate_movie
 from app.schemas.movies import  MovieCreate,MovieUpdate,MovieDetails
 
 router = APIRouter()
@@ -26,11 +26,17 @@ def remove_movie(movie_id: int, db: Session = Depends(get_db)):
 
 @router.get("/")
 def movies_list(db: Session = Depends(get_db)):
-    return get_all_movies(db)
+    return get_active_movies(db)
 
 
 @router.get("/{movie_id}")
 def select_movie(movie_id: int, db: Session = Depends(get_db)):
     return get_movie_id(movie_id, db)
 
+@router.get("/movies/inactive")
+def list_inactive_movies(db: Session = Depends(get_db)):
+    return get_inactive_movies(db)
 
+@router.patch("/{movie_id}/activate")
+def restore_movie(movie_id: int, db: Session = Depends(get_db)):
+    return activate_movie(movie_id, db)

@@ -5,11 +5,11 @@ from app.core.db import get_db
 
 from app.models.theatres import SQtheaters
 from app.schemas.theatres import TheatreCreate,TheatreDetails,TheatreUpdate
-from app.crud import create_theater,get_all_theaters,get_theater_by_id,update_theater,delete_theater
+from app.crud import create_theater,get_all_theaters,get_theater_by_id,update_theater,delete_theater,get_inactive_theaters
 
 from app.models.screens import SQscreens
 from app.schemas.screens import ScreenCreate, ScreenDetails, ScreenUpdate
-from app.crud import add_screen_to_theater, get_screens_by_theater,update_screen,delete_screen
+from app.crud import add_screen_to_theater, get_screens_by_theater,update_screen,delete_screen,get_inactive_screens_by_theater,activate_screen
 
 
 router = APIRouter()
@@ -38,6 +38,9 @@ def edit_theater(theater_id: int, theater: TheatreUpdate, db: Session = Depends(
 def remove_theater(theater_id: int, db: Session = Depends(get_db)):
     return delete_theater(theater_id, db)
 
+@router.get("/admin/inactive")
+def list_inactive_theaters(db: Session = Depends(get_db)):
+    return get_inactive_theaters(db)
 
 
 # Screens 
@@ -59,3 +62,11 @@ def edit_screen(screen_id: int, screen: ScreenUpdate, db: Session = Depends(get_
 @router.delete("/screens/{screen_id}")
 def remove_screen(screen_id: int, db: Session = Depends(get_db)):
     return delete_screen(screen_id, db)
+
+@router.get("/theaters/{theater_id}/screens/inactive")
+def list_inactive_theater_screens(theater_id: int, db: Session = Depends(get_db)):
+    return get_inactive_screens_by_theater(theater_id, db)
+
+@router.patch("/{screen_id}/activate")
+def restore_screen(screen_id: int, db: Session = Depends(get_db)):
+    return activate_screen(screen_id, db)

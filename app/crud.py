@@ -4,7 +4,7 @@ from sqlalchemy import func
 from datetime import datetime, timedelta
 from typing import List
 import uuid
-
+from pathlib import Path
 
 
 from app.models.user import SQUser
@@ -165,7 +165,7 @@ def get_user_id(user_id : int, db: Session):
 # get city details
 
 def get_all_cities(db: Session):
-    return db.query(SQcity).all()
+    return db.query(SQcity).filter(SQcity.is_active == True).all()
 
 # Get one city 
 
@@ -175,7 +175,7 @@ def get_city_id(city_id: int, db: Session):
             raise HTTPException(status_code=404, detail="City not found")
     return cities
 
-# update city 
+# add city 
 
 def create_city(city: CityCreate, db: Session):
     existing_city =db.query(SQcity).filter((SQcity.city_name == city.city_name)).first()
@@ -196,12 +196,25 @@ def delete_city(city_id: int, db: Session):
     if not city:
             raise HTTPException(status_code=404, detail="City not found")
 
-    db.delete(city)
+    city.is_active = False
     db.commit()
 
     return " city deleted succesfully "
 
+#to get inactive city
+def get_inactive_cities(db: Session):
+    return db.query(SQcity).filter(SQcity.is_active == False).all()
 
+# to update inactive city
+def restore_city(city_id: int, db: Session):
+    city = db.query(SQcity).filter(SQcity.city_id == city_id).first()
+    if not city:
+        raise HTTPException(status_code=404, detail="City not found")
+    
+    city.is_active = True
+    db.commit()
+    db.refresh(city)
+    return "City activated successfully"
 
 #---------------------------------------------------- movies operations ------------------------------------------------------------#
 
@@ -270,27 +283,55 @@ def delete_movie(movie_id: int, db: Session):
     if not movie:
             raise HTTPException(status_code=404, detail="City not found")
 
-    db.delete(movie)
+    movie.is_active = False
     db.commit()
 
     return " movie deleted succesfully "
 
+#to activate movie
+def activate_movie(movie_id: int, db: Session):
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+    if not movie:
+        raise HTTPException(status_code=404, detail="Movie not found")
+    movie.is_active = True
+    db.commit()
+    return  "Movie activated successfully"
 
-# to get all movies
-
-def get_all_movies(db: Session):
-    movies = db.query(SQmovies).all()
-
-    return movies
+# to get all active movies
+def get_active_movies(db: Session):
+    return db.query(SQmovies).filter(SQmovies.is_active == True).all()
 
 # veiw one movie
-
 def get_movie_id(movie_id : int, db: Session):
-    movie_detail = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
+    movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
     if movie_id is None:
-                raise HTTPException(status_code=404, detail="Usern ot found")
+                raise HTTPException(status_code=404, detail="movie ot found")
     
-    return movie_detail
+    if not movie.is_active:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Movie is inactive")
+
+    movie_folder = Path(r"C:\Users\HP\OneDrive\Documents\movie_images") / f"movie_{movie_id}"
+    image_urls = []
+    
+    if movie_folder.exists():
+        image_urls = [f"/images/movie_{movie_id}/{img.name}" for img in movie_folder.iterdir() if img.is_file()]
+        movie_details = {
+        "movie_id": movie.movie_id,
+        "title": movie.title,
+        "description": movie.description,
+        "genre": movie.genre,
+        "duration_minutes": movie.duration_minutes,
+        "release_date": movie.release_date,
+        "poster_url": movie.poster_url,
+        "status": movie.status,
+        "is_active": movie.is_active,
+        "images": image_urls
+    }
+    return movie_details
+
+# to get view inactive movies
+def get_inactive_movies(db: Session):
+    return db.query(SQmovies).filter(SQmovies.is_active == False).all()
 
 
 #---------------------------------------------------------------langauges -----------------------------------------------------
@@ -300,7 +341,7 @@ def create_language(language: LanguageCreate, db: Session):
 
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Language already exists")
 
-    new_lang = SQlanguages(language_name=language.language_name, status="available")
+    new_lang = SQlanguages(language_name=language.language_name, status="available", is_active=True)
 
     try:
 
@@ -345,6 +386,10 @@ def update_language(language_id: int, language: LanguageUpdate, db: Session):
         
     return "Language updated successfully"
 
+#  to ge inactive
+
+def get_inactive_languages(db: Session):
+    return db.query(SQlanguages).filter(SQlanguages.is_active == False).all()
 
 # assign language to movie 
 
@@ -354,7 +399,7 @@ def assign_languages_to_movie(movie_id: int, assignment: MovieLanguageAssignment
     if not movie:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie not found")
 
-    languages = db.query(SQlanguages).filter(SQlanguages.language_id.in_(assignment.language_ids)).all()
+    languages = db.query(SQlanguages).filter(SQlanguages.language_id.in_(assignment.language_ids),SQlanguages.is_active == True).all()
 
     if len(languages) != len(assignment.language_ids):
 
@@ -404,7 +449,7 @@ def remove_language_from_movie(movie_id: int, language_id: int, db: Session):
 
 # select language to view all movies in selected language
 def get_movies_by_language(language_id: int, db: Session):
-    lang = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+    lang = db.query(SQlanguages).filter(SQlanguages.language_id == language_id, SQlanguages.is_active == True).first()
     if not lang:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Language not found")
     return lang.movies
@@ -414,7 +459,7 @@ def get_languages_by_movie(movie_id: int, db: Session):
     movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
     if not movie:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Movie not found")
-    return movie.languages
+    return  [lang for lang in movie.languages if lang.is_active]
 
 # remove language
 def delete_language(language_id: int, db: Session):
@@ -423,7 +468,7 @@ def delete_language(language_id: int, db: Session):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Language not found")
 
     try:
-        db.delete(lang)
+        lang.is_active = False
         db.commit()
     except Exception as e:
         db.rollback()
@@ -431,6 +476,14 @@ def delete_language(language_id: int, db: Session):
         
     return "Language deleted successfully"
 
+# to get inactive languages
+def activate_language(language_id: int, db: Session):
+    lang = db.query(SQlanguages).filter(SQlanguages.language_id == language_id).first()
+    if not lang:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Language not found")
+    lang.is_active = True
+    db.commit()
+    return "Language activated successfully"
 
 
 # -----------------------------------------------------------theaters-------------------------------------------------------------- 
@@ -482,10 +535,14 @@ def update_theater(theater_id: int, theater_update: TheatreUpdate, db: Session):
 
 #get all theaters
 def get_all_theaters(city_id: int | None, db: Session):
-    query = db.query(SQtheaters)
+    query = db.query(SQtheaters).filter(SQtheaters.is_active == True)
     if city_id:
         query = query.filter(SQtheaters.city_id == city_id)
     return query.all()
+
+# to get inactive theaters
+def get_inactive_theaters(db: Session):
+    return db.query(SQtheaters).filter(SQtheaters.is_active == False).all()
 
 # get theater by id
 
@@ -503,14 +560,13 @@ def delete_theater(theater_id: int, db: Session):
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
 
     try:
+        theater.is_active = False
         db.delete(theater)
         db.commit()
 
     except Exception as e:
-
         db.rollback()
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete theater: {e}")
-
     return "Theater deleted successfully"
 
 
@@ -554,7 +610,7 @@ def get_screens_by_theater(theater_id: int, db: Session):
     theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
     if not theater:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
-    return theater.screens
+    return [screen for screen in theater.screens if screen.is_active]
 
 
 # Update Screens
@@ -588,7 +644,7 @@ def delete_screen(screen_id: int, db: Session):
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found")
     try:
 
-        db.delete(screen)
+        screen.is_active = False
         db.commit()
 
     except Exception as e:
@@ -597,7 +653,28 @@ def delete_screen(screen_id: int, db: Session):
 
     return "Screen deleted successfully"
 
+#to get inactive screens
+def get_inactive_screens_by_theater(theater_id: int, db: Session):
+    theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
+    if not theater:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
+    return [screen for screen in theater.screens if not screen.is_active]
 
+# to activate screens
+def activate_screen(screen_id: int, db: Session):
+    screen = db.query(SQscreens).filter(SQscreens.screen_id == screen_id).first()
+    if not screen:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found")
+    
+    try:
+        screen.is_active = True
+        db.commit()
+        db.refresh(screen)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to activate screen: {e}")
+
+    return "Screen activated successfully"
 
 #-------------------------------------------------------------seats-------------------------------------------------------------#
 def generate_seats_for_screen(hall: SeatCreate, db: Session):
