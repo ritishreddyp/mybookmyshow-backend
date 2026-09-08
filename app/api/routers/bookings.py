@@ -5,7 +5,7 @@ from app.api.deps import get_current_user
 
 from app.core.db import get_db
 from app.schemas.booking_section import BookingCreate
-from app.crud import select_seats_and_create_summary, delete_booking_item
+from app.curd_operations.booking import select_seats_and_create_summary, delete_booking_item
 
 router = APIRouter()
 

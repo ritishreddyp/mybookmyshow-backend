@@ -2,7 +2,6 @@ from datetime import datetime , timezone ,timedelta
 from pwdlib import PasswordHash
 
 import jwt
-from jwt.exceptions import InvalidTokenError
 
 from app.core.config import settings
 
@@ -23,12 +22,13 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 #jwt creation
-def create_access_token(subject: str | int, expires_delta: timedelta | None = None) -> str:
+def create_access_token(subject: str | int,role: str, expires_delta: timedelta | None = None) -> str:
 
     expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.ACCESS_TOKEN_TIME))
 
     payload = {
         "sub": str(subject),
+        "role": role,
         "exp": expire}
 
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
@@ -38,3 +38,4 @@ def create_access_token(subject: str | int, expires_delta: timedelta | None = No
 def decode_access_token(token: str) -> dict:
 
     return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+

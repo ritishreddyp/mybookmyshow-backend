@@ -4,9 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.db import get_db
 
 from app.schemas.shows import ShowCreate, ShowUpdate
-from app.crud import create_show, update_show, delete_show, get_shows
-
-
+from app.curd_operations.shows import create_show, update_show, delete_show, get_shows
 
 router = APIRouter()
 

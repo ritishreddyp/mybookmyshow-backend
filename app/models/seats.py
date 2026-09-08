@@ -13,6 +13,7 @@ class SQseats(Base):
     seat_row = Column(String, nullable=False)
     seat_number = Column(String, nullable=False) 
     seat_type = Column(String, nullable=False)
+
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)
 

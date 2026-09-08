@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+
 from app.core.db import get_db
+
 from app.schemas.seats import SeatCreate
-from app.crud import generate_seats_for_screen,delete_seats_for_screen,update_seats_for_screen
+from app.curd_operations.seats import generate_seats_for_screen,delete_seats_for_screen,update_seats_for_screen
 
 router = APIRouter()
 

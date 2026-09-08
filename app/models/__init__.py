@@ -14,8 +14,10 @@ from app.models.tickets import SQtickets
 from app.models.payments import SQpayments
 
 __all__ = [
+
     "Base", "SQUser", "SQcity", "SQlanguages", "SQmovies",
     "SQtheaters", "SQscreens", "SQseats", "SQshows",
     "SQshow_seats", "SQbooking_section", "SQbooking_items",
     "SQtickets", "SQpayments"
+    
 ]

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 
-from app.crud import create_movie,movie_update,delete_movie,get_movie_id,get_active_movies,get_inactive_movies,activate_movie
+from app.curd_operations.movie import create_movie,movie_update,delete_movie,get_movie_id,get_active_movies,get_inactive_movies,activate_movie
 from app.schemas.movies import  MovieCreate,MovieUpdate,MovieDetails
 
 router = APIRouter()

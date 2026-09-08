@@ -5,7 +5,7 @@ from app.core.db import get_db
 
 from app.schemas.tickets import BookingConfirmation
 
-from app.crud import get_ticket_details
+from app.curd_operations.ticket import get_ticket_details
 
 router = APIRouter()
 

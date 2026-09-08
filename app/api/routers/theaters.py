@@ -5,11 +5,11 @@ from app.core.db import get_db
 
 from app.models.theatres import SQtheaters
 from app.schemas.theatres import TheatreCreate,TheatreDetails,TheatreUpdate
-from app.crud import create_theater,get_all_theaters,get_theater_by_id,update_theater,delete_theater,get_inactive_theaters
+from app.curd_operations.theater import create_theater,get_all_theaters,get_theater_by_id,update_theater,delete_theater,get_inactive_theaters
 
 from app.models.screens import SQscreens
 from app.schemas.screens import ScreenCreate, ScreenDetails, ScreenUpdate
-from app.crud import add_screen_to_theater, get_screens_by_theater,update_screen,delete_screen,get_inactive_screens_by_theater,activate_screen
+from app.curd_operations.screen import add_screen_to_theater, get_screens_by_theater,update_screen,delete_screen,get_inactive_screens_by_theater,activate_screen
 
 
 router = APIRouter()

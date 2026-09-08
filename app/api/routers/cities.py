@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends,status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 
-from app.crud import get_all_cities,get_city_id,create_city,delete_city,restore_city,get_inactive_cities
+from app.curd_operations.city import get_all_cities,get_city_id,create_city,delete_city,restore_city,get_inactive_cities
 from app.schemas.city import  CityDetails,CityCreate
 
 router = APIRouter()

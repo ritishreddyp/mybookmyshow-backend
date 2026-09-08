@@ -6,7 +6,7 @@ from sqlalchemy.orm import relationship
 class SQUser(Base):
 
     __tablename__ = "users"
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, primary_key=True)
     username = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     phone_number = Column(String, unique=True, nullable=False)
