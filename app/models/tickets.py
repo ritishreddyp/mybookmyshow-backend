@@ -6,7 +6,8 @@ from sqlalchemy.orm import relationship
 class SQtickets(Base):
 
     __tablename__ = "Tickets"
-    ticket_id = Column(Integer, primary_key=True, autoincrement=True)
+
+    ticket_id =  Column(Integer, primary_key=True, autoincrement=True)
     booking_id = Column(Integer, ForeignKey("BookingSection.booking_id"), nullable=False)
     show_id = Column(Integer, ForeignKey("Shows.show_id"), nullable=False)
     ticket_code = Column(String,  unique=True , nullable=False)
