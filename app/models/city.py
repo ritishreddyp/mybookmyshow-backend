@@ -3,10 +3,13 @@ from datetime import datetime
 from app.core.db import Base
 from sqlalchemy.orm import relationship
 
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+
 class SQcity(Base):
 
     __tablename__ = "City"
-    city_id = Column(Integer,primary_key=True,autoincrement=True)
+    city_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     city_name = Column(String,nullable=False)
     state = Column(String,nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)

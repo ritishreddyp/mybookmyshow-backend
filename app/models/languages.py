@@ -3,17 +3,18 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey,Table,Boole
 from sqlalchemy.orm import relationship
 from app.core.db import Base
 
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
-movie_languages = Table("movie_languages",Base.metadata,
-                        
-    Column("movie_id", Integer, ForeignKey("Movies.movie_id", ondelete="CASCADE"), primary_key=True),
-    Column("language_id", Integer, ForeignKey("Languages.language_id", ondelete="CASCADE"), primary_key=True))
-
+movie_languages = Table("movie_languages", Base.metadata,
+    Column("movie_id", UUID(as_uuid=True), ForeignKey("Movies.movie_id", ondelete="CASCADE"), primary_key=True),
+    Column("language_id", UUID(as_uuid=True), ForeignKey("Languages.language_id", ondelete="CASCADE"), primary_key=True)
+)
 
 class SQlanguages(Base):
     __tablename__ = "Languages"
 
-    language_id = Column(Integer, primary_key=True, autoincrement=True)
+    language_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     language_name = Column(String, nullable=False)
     status = Column(String, default="available", nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)

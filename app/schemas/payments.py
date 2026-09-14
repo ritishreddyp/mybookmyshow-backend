@@ -1,15 +1,15 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
-
+from uuid import UUID
 
 class PaymentProcessRequest(BaseModel):
-    booking_id : int
+    booking_id : UUID
     payment_method : str
 
 
 class PaymentDetails(BaseModel):
-    payment_id : int
-    booking_id : int
+    payment_id : UUID
+    booking_id : UUID
     transaction_id : str
     payment_method : str
     amount : float

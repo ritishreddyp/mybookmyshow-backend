@@ -12,7 +12,7 @@ from app.schemas.shows import ShowCreate, ShowUpdate
 from app.models.screens import SQscreens
 from app.models.movies import SQmovies
 from app.models.languages import SQlanguages
-from app.models.theatres import SQtheaters
+from app.models.theaters import SQtheaters
 from app.curd_operations.show_seat import generate_show_seats_for_show
 
 #----------------------------------------------------shows---------------------------------------------------------------

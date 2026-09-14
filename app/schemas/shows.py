@@ -1,12 +1,12 @@
 from datetime import date, time, datetime
 from pydantic import BaseModel, ConfigDict
-
+from uuid import UUID
 
 class ShowCreate(BaseModel):
-    theater_id: int
-    screen_id : int
-    movie_id : int
-    language_id : int
+    theater_id: UUID
+    screen_id : UUID
+    movie_id : UUID
+    language_id : UUID
     show_date : date
     show_time : time
     base_price : float
@@ -21,10 +21,10 @@ class ShowUpdate(BaseModel):
 
 
 class ShowDetails(BaseModel):
-    show_id : int
-    screen_id : int
-    movie_id : int
-    language_id : int
+    show_id : UUID
+    screen_id : UUID
+    movie_id : UUID
+    language_id : UUID
     show_date : date
     show_time : time
     base_price : float

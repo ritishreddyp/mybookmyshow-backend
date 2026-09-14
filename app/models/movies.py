@@ -4,10 +4,13 @@ from app.core.db import Base
 from sqlalchemy.orm import relationship
 from app.models.languages import SQlanguages
 
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+
 class SQmovies(Base):
 
     __tablename__ = "Movies"
-    movie_id = Column(Integer, primary_key=True,autoincrement=True)
+    movie_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
     genre = Column(String, nullable=False)

@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict,Field
-
+from uuid import UUID
 
 class LanguageCreate(BaseModel):
     language_name : str
@@ -12,7 +12,7 @@ class LanguageUpdate(BaseModel):
 
 
 class LanguageDetails(BaseModel):
-    language_id : int
+    language_id : UUID
     language_name : str
     status : str
     created_at : datetime
@@ -22,4 +22,4 @@ class LanguageDetails(BaseModel):
 
 
 class MovieLanguageAssignment(BaseModel):
-    language_ids: list[int] = Field(..., min_length=1)
+    language_ids: list[UUID] = Field(..., min_length=1)

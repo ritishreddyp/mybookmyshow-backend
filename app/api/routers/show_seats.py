@@ -8,6 +8,7 @@ from app.curd_operations.show_seat import get_show_seats
 
 router = APIRouter()
 
+#public access
 @router.get("/show/{show_id}")
 def view_show_seats(show_id: int, db: Session = Depends(get_db)):
     return get_show_seats(show_id, db)

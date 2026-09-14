@@ -1,23 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException,status
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from fastapi.security import OAuth2PasswordRequestForm
 from app.core.db import get_db
-from app.schemas.user import UserLogin
-from app.core.security import verify_password, create_access_token
-from app.models.user import SQUser
+from app.curd_operations.auth_operations import authenticate_customer,authenticate_main_admin,authenticate_theater_admin
+
 
 router = APIRouter()
 
+@router.post("/login/user")
+def user_login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    return authenticate_customer(form_data.username, form_data.password, db)
 
-@router.post("/login")
-def user_login(credentials: UserLogin , db: Session = Depends(get_db)):
-    user = db.query(SQUser).filter(SQUser.email == credentials.email).first()
+@router.post("/login/admin")
+def main_admin_login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    return authenticate_main_admin(form_data.username, form_data.password, db)
 
-    if not user or not verify_password(credentials.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password", headers={"WWW-Authenticate": "Bearer"}, )
-
-    user_role = user.role.name if getattr(user, "role", None) else "user"
-    access_token = create_access_token(subject=user.email , role = user_role)
-    
-    return { "access_token": access_token, "token_type": "bearer" }
+@router.post("/login/theater-admin")
+def theater_admin_login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    return authenticate_theater_admin(form_data.username, form_data.password, db)

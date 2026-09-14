@@ -1,9 +1,9 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
-
+from uuid import UUID
 
 class TheatreCreate(BaseModel):
-    city_id : int
+    city_id : UUID
     theater_name : str
     address : str
     status: str = "active"
@@ -16,8 +16,8 @@ class TheatreUpdate(BaseModel):
 
 
 class TheatreDetails(BaseModel):
-    theater_id : int
-    city_id : int
+    theater_id : UUID
+    city_id : UUID
     theater_name : str
     address : str
     status: str

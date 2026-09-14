@@ -1,6 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
-
+from uuid import UUID
 
 class CityCreate(BaseModel):
     city_name : str
@@ -13,7 +13,7 @@ class CityUpdate(BaseModel):
 
 
 class CityDetails(BaseModel):
-    city_id : int
+    city_id : UUID
     city_name : str
     state : str
     created_at : datetime

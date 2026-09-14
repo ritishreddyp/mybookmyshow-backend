@@ -3,15 +3,18 @@ from datetime import datetime
 from app.core.db import Base
 from sqlalchemy.orm import relationship
 
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 class SQtheaters(Base):
 
     __tablename__ = "Theaters"
-    theater_id =  Column(Integer, primary_key=True, autoincrement=True)
-    city_id = Column(Integer, ForeignKey("City.city_id"), nullable=False)
+    theater_id =  Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    city_id = Column(UUID(as_uuid=True), ForeignKey("City.city_id"), nullable=False)
     theater_name = Column(String, nullable=False)
     address = Column(String, nullable=False)
     status =  Column(String, default="active", nullable=False)
+
     is_active = Column(Boolean, default=True, nullable=False)
 
     created_at = Column(DateTime, default=datetime.now, nullable=False)

@@ -3,13 +3,16 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date, Time
 from sqlalchemy.orm import relationship
 from app.core.db import Base
 
+import uuid
+from sqlalchemy.dialects.postgresql import UUID
+
 class SQshows(Base):
     __tablename__ = "Shows"
 
-    show_id = Column(Integer, primary_key=True, autoincrement=True)
-    movie_id = Column(Integer, ForeignKey("Movies.movie_id", ondelete="CASCADE"), nullable=False)
-    screen_id = Column(Integer, ForeignKey("Screens.id", ondelete="CASCADE"), nullable=False)
-    language_id = Column(Integer, ForeignKey("Languages.language_id", ondelete="CASCADE"), nullable=False)
+    show_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    movie_id = Column(UUID(as_uuid=True), ForeignKey("Movies.movie_id", ondelete="CASCADE"), nullable=False)
+    screen_id = Column(UUID(as_uuid=True), ForeignKey("Screens.id", ondelete="CASCADE"), nullable=False)
+    language_id = Column(UUID(as_uuid=True), ForeignKey("Languages.language_id", ondelete="CASCADE"), nullable=False)
     show_date = Column(Date, nullable=False)
     show_time = Column(Time, nullable=False)
     base_price = Column(Float, nullable=False)

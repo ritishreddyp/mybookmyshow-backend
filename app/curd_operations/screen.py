@@ -5,7 +5,7 @@ from sqlalchemy import func
 from app.models.screens import SQscreens
 from app.schemas.screens import ScreenCreate,ScreenUpdate,ScreenDetails
 
-from app.models.theatres import SQtheaters
+from app.models.theaters import SQtheaters
 
 #-------------------------------------------------------screens---------------------------------------------------
 

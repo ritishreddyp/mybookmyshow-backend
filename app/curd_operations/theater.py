@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.models.theatres import SQtheaters
+from app.models.theaters import SQtheaters
 from app.schemas.theatres import TheatreCreate,TheatreUpdate,TheatreDetails
 
 from app.models.city import SQcity

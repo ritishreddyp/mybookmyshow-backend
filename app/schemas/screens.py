@@ -1,9 +1,9 @@
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict
-
+from uuid import UUID
 
 class ScreenCreate(BaseModel):
-    theater_id : int
+    theater_id : UUID
     screen_name : str
     screen_type : str 
     status : str = "active"
@@ -16,8 +16,8 @@ class ScreenUpdate(BaseModel):
 
 
 class ScreenDetails(BaseModel):
-    screen_id : int
-    theater_id : int
+    screen_id : UUID
+    theater_id : UUID
     screen_name : str
     screen_type : str
     status : str
