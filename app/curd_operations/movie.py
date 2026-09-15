@@ -2,7 +2,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from pathlib import Path
-
+from uuid import UUID
 
 from app.models.movies import SQmovies
 from app.schemas.movies import MovieCreate,MovieUpdate,MovieDetails
@@ -24,7 +24,7 @@ def create_movie(movie: MovieCreate , db:Session):
 
 
 # update movie
-def movie_update(movie_id: int, movie: MovieUpdate, db: Session):
+def movie_update(movie_id: UUID, movie: MovieUpdate, db: Session):
     existing_movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
     if not existing_movie:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="movie not found" )
@@ -58,7 +58,7 @@ def movie_update(movie_id: int, movie: MovieUpdate, db: Session):
 
     
 #movie delete
-def delete_movie(movie_id: int, db: Session):
+def delete_movie(movie_id: UUID, db: Session):
     movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
     if not movie:
             raise HTTPException(status_code=404, detail="City not found")
@@ -70,7 +70,7 @@ def delete_movie(movie_id: int, db: Session):
 
 
 #to activate movie
-def activate_movie(movie_id: int, db: Session):
+def activate_movie(movie_id: UUID, db: Session):
     movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
     if not movie:
         raise HTTPException(status_code=404, detail="Movie not found")
@@ -85,19 +85,19 @@ def get_active_movies(db: Session):
 
 
 # veiw one movie
-def get_movie_id(movie_id : int, db: Session):
+def get_movie_id(movie_id :UUID , db: Session):
     movie = db.query(SQmovies).filter(SQmovies.movie_id == movie_id).first()
 
-    if movie_id is None:
-                raise HTTPException(status_code=404, detail="movie ot found")
+    if movie is None:
+                raise HTTPException(status_code=404, detail="movie not found")
     if not movie.is_active:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Movie is inactive")
 
-    movie_folder = Path(r"C:\Users\HP\OneDrive\Documents\movie_images") / f"movie_{movie_id}"
+    movie_folder = Path(r"C:\Users\HP\OneDrive\Documents\movie_images") / movie.title
     image_urls = []
     
     if movie_folder.exists():
-        image_urls = [f"/images/movie_{movie_id}/{img.name}" for img in movie_folder.iterdir() if img.is_file()]
+        image_urls = [f"/images/{movie.title}/{img.name}" for img in movie_folder.iterdir() if img.is_file()]
         movie_details = {
         "movie_id": movie.movie_id,
         "title": movie.title,

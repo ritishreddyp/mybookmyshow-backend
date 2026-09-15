@@ -11,7 +11,7 @@ class SQshows(Base):
 
     show_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     movie_id = Column(UUID(as_uuid=True), ForeignKey("Movies.movie_id", ondelete="CASCADE"), nullable=False)
-    screen_id = Column(UUID(as_uuid=True), ForeignKey("Screens.id", ondelete="CASCADE"), nullable=False)
+    screen_id = Column(UUID(as_uuid=True), ForeignKey("Screens.screen_id", ondelete="CASCADE"), nullable=False)
     language_id = Column(UUID(as_uuid=True), ForeignKey("Languages.language_id", ondelete="CASCADE"), nullable=False)
     show_date = Column(Date, nullable=False)
     show_time = Column(Time, nullable=False)

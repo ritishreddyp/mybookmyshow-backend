@@ -16,7 +16,7 @@ def authenticate_customer(email: str, password: str, db: Session):
     if not user or not verify_password(password, hashed_pw):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user credentials")
     
-    access_token = create_access_token(email=user.email, role="customer", theater_id=None)
+    access_token = create_access_token(email=user.email, role="user", theater_id=None)
 
     return {"access_token": access_token, "token_type": "bearer"}
 

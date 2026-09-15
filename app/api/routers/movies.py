@@ -5,6 +5,7 @@ from uuid import UUID
 from app.core.db import get_db
 from app.api.deps import require_role
 
+from app.models.movies import SQmovies
 from app.curd_operations.movie import create_movie,movie_update,delete_movie,get_movie_id,get_active_movies,get_inactive_movies,activate_movie
 from app.schemas.movies import  MovieCreate,MovieUpdate,MovieDetails
 
@@ -18,6 +19,12 @@ router = APIRouter()
 def movies_list(db: Session = Depends(get_db)):
     return get_active_movies(db)
 
+# admin access
+@router.get("/inactive")
+def list_inactive_movies(db: Session =Depends(get_db),  current_user = Depends(require_role(["theater_admin", "admin"]))):
+    return get_inactive_movies(db)
+
+#public 
 @router.get("/{movie_id}")
 def select_movie(movie_id: UUID, db: Session = Depends(get_db)):
     return get_movie_id(movie_id, db)
@@ -29,30 +36,26 @@ def view_language_of_movie(movie_id: UUID, db: Session = Depends(get_db)):
 
 # theater admin 
 @router.post("/")
-def add_movie( movie : MovieCreate,db: Session = Depends(require_role(["theater_admin", "admin"]))):
+def add_movie( movie : MovieCreate,db: Session =Depends(get_db),  current_user = Depends(require_role(["theater_admin", "admin"]))):
     return create_movie(movie,db)
 
 @router.patch("/{movie_id}")
-def update_movie_details(movie_id:UUID, movie: MovieUpdate,db: Session = Depends(require_role(["theater_admin", "admin"]))):
+def update_movie_details(movie_id:UUID, movie: MovieUpdate,db: Session =Depends(get_db),  current_user = Depends(require_role(["theater_admin", "admin"]))):
     return movie_update(movie_id,movie,db)
 
 @router.delete("/{movie_id}")
-def remove_movie(movie_id: UUID, db: Session = Depends(require_role(["theater_admin", "admin"]))):
+def remove_movie(movie_id: UUID, db: Session =Depends(get_db),  current_user = Depends(require_role(["theater_admin", "admin"]))):
     return delete_movie(movie_id,db)
 
-@router.get("/inactive")
-def list_inactive_movies(db: Session = Depends(require_role(["theater_admin", "admin"]))):
-    return get_inactive_movies(db)
-
 @router.patch("/{movie_id}/activate")
-def restore_movie(movie_id: UUID, db: Session = Depends(require_role(["theater_admin", "admin"]))):
+def restore_movie(movie_id: UUID, db: Session = Depends(get_db),  current_user =Depends(require_role(["theater_admin", "admin"]))):
     return activate_movie(movie_id, db)
 
 #language
 @router.post("/{movie_id}/assign")
-def assign_languages(movie_id: UUID, assignment: MovieLanguageAssignment, db: Session = Depends(require_role(["theater_admin", "admin"]))):
+def assign_languages(movie_id: UUID, assignment: MovieLanguageAssignment, db: Session =Depends(get_db),  current_user = Depends(require_role(["theater_admin", "admin"]))):
     return assign_languages_to_movie(movie_id, assignment, db)
 
 @router.delete("/{movie_id}/remove/{language_id}")
-def remove_language_movie(movie_id: UUID, language_id: int, db: Session = Depends(require_role(["theater_admin", "admin"]))):
+def remove_language_movie(movie_id: UUID, language_id: UUID, db: Session =Depends(get_db),  current_user = Depends(require_role(["theater_admin", "admin"]))):
     return remove_language_from_movie(movie_id, language_id, db)

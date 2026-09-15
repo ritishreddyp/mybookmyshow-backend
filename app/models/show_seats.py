@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String,DateTime,ForeignKey,Float
+from sqlalchemy import Column, Integer, String,DateTime,ForeignKey,Float,Boolean
 from datetime import datetime
 from app.core.db import Base
 from sqlalchemy.orm import relationship
@@ -9,11 +9,12 @@ from sqlalchemy.dialects.postgresql import UUID
 class SQshow_seats(Base):
 
     __tablename__ = "ShowSeats"
-    show_seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
+    show_seat_id = Column(Integer, primary_key=True, autoincrement=True, nullable=False)
     show_id = Column(UUID(as_uuid=True), ForeignKey("Shows.show_id", ondelete="CASCADE"), nullable=False)
-    seat_id = Column(UUID(as_uuid=True), ForeignKey("Seats.id", ondelete="CASCADE"), nullable=False)
+    seat_id = Column(UUID(as_uuid=True), ForeignKey("Seats.seat_id", ondelete="CASCADE"), nullable=False)
     price = Column(Float, nullable=False)
     status = Column(String, default= "available" ,nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
     lock_expires_at = Column(DateTime, nullable=True)
 
     created_at = Column(DateTime, default=datetime.now, nullable=False)

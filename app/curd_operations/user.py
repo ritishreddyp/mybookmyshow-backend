@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app.models.user import SQUser
 from app.schemas.user import UserCreate, UserUpdate,UserDetails
@@ -37,7 +38,7 @@ def create_new_user(user: UserCreate, db: Session):
 
 
 # Update user details
-def update_user_details(user_id: int, user: UserUpdate, db: Session):
+def update_user_details(user_id: UUID, user: UserUpdate, db: Session):
     existing_user =db.query(SQUser).filter(SQUser.user_id == user_id).first()
     if not existing_user:
         raise HTTPException(status_code=404,detail="User not found")
@@ -80,7 +81,7 @@ def update_user_details(user_id: int, user: UserUpdate, db: Session):
 
 
 # delete user details 
-def delete_user(user_id: int, db: Session):
+def delete_user(user_id: UUID, db: Session):
     existing_user = db.query(SQUser).filter(SQUser.user_id == user_id).first()
     if not  existing_user:
             raise HTTPException( status_code=404, detail = "User not found" )
@@ -100,7 +101,7 @@ def get_all_users(db: Session):
 
 
 #get user by id
-def get_user_id(user_id : int, db: Session):
+def get_user_id(user_id : UUID, db: Session):
     user_detail = db.query(SQUser).filter(SQUser.user_id == user_id).first()
     if user_id is None:
                 raise HTTPException(status_code=404, detail="Usern ot found")

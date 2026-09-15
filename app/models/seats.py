@@ -9,10 +9,9 @@ from sqlalchemy.dialects.postgresql import UUID
 class SQseats(Base):
 
     __tablename__ = "Seats"
-    id = Column(Integer, primary_key=True, autoincrement=True)
     seat_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
-    theater_id = Column(UUID(as_uuid=True), ForeignKey("Theater.id", ondelete="CASCADE"), nullable=False)
-    screen_id = Column(UUID(as_uuid=True), ForeignKey("Screens.id", ondelete="CASCADE"), nullable=False)
+    theater_id = Column(UUID(as_uuid=True), ForeignKey("Theaters.theater_id", ondelete="CASCADE"), nullable=False)
+    screen_id = Column(UUID(as_uuid=True), ForeignKey("Screens.screen_id", ondelete="CASCADE"), nullable=False)
     seat_row = Column(String, nullable=False)
     seat_number = Column(String, nullable=False) 
     seat_type = Column(String, nullable=False)

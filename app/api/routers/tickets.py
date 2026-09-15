@@ -12,6 +12,6 @@ router = APIRouter()
 
 
 @router.get("/{booking_id}")
-def get_m_ticket(booking_id: int, db: Session = Depends(require_role(["public"]))):
+def get_m_ticket(booking_id: int, db: Session = Depends(require_role(["admin","user"]))):
     current_user_id = 1
     return get_ticket_details(booking_id, current_user_id, db)

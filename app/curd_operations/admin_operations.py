@@ -7,6 +7,7 @@ from app.core.security import get_password_hash
 from app.models.admin import SQMainAdmin
 from app.models.theater_admin import SQTheaterAdmin
 from app.models.theaters import SQtheaters
+from app.schemas.theater_admin import TheaterAdminCreate
 
 #main admin
 def create_main_admin_account(payload, db: Session):
@@ -27,27 +28,42 @@ def create_main_admin_account(payload, db: Session):
 
     return new_admin
 
-# theater admin
-def create_theater_admin_account(payload, db: Session):
-    theater = db.query(SQtheaters).filter(
-        SQtheaters.city_id == payload.city_id,
-        SQtheaters.theater_id == payload.theater_id
-    ).first()
+# theater admin auto genrate email
+def generate_theater_admin_email(city_name: str, theater_name: str) -> str:
+    clean_city = re.sub(r'[^a-z0-9]', '', city_name.lower())
+    clean_theater = re.sub(r'[^a-z0-9]', '', theater_name.lower())
+
+    return f"{clean_city}.{clean_theater}.theateradmin@mybookmyshow.com"
+
+
+# theater admin 
+def create_theater_admin_account(payload: TheaterAdminCreate, db: Session):
+    theater = db.query(SQtheaters).filter(SQtheaters.theater_id == payload.theater_id).first()
 
     if not theater:
-        raise HTTPException(status_code=404, detail="Theater not found for given city_id and theater_id")
+        raise HTTPException(status_code=404, detail="Theater not found ")
+
+    city_name = theater.city.city_name 
+    theater_name = theater.theater_name
+    generated_email = generate_theater_admin_email(city_name, theater_name)
 
     hashed_pw = get_password_hash(payload.admin_password)
 
     new_admin = SQTheaterAdmin(
-        city_id=payload.city_id,
-        theater_id=payload.theater_id,
-        theater_name=theater.theater_name,
-        email=payload.admin_username,
+        city_id=theater.city_id,       
+        theater_id=theater.theater_id, 
+        theater_name=theater_name,     
+        email=generated_email,         
         hashed_password=hashed_pw
     )
-    db.add(new_admin)
-    db.commit()
-    db.refresh(new_admin)
+    try:
+         db.add(new_admin)
+         db.commit()
+         db.refresh(new_admin)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="This email combination might already exist.")
 
     return new_admin

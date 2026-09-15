@@ -9,7 +9,6 @@ from sqlalchemy.dialects.postgresql import UUID
 class SQscreens(Base):
 
     __tablename__ = "Screens"
-    id = Column(Integer, primary_key=True, autoincrement=True)
     screen_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     theater_id = Column(UUID(as_uuid=True), ForeignKey("Theaters.theater_id"), nullable=False)
     screen_name = Column(String, nullable=False)

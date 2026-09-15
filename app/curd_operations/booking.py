@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-
+from uuid import UUID
 from app.models.booking_section import SQbooking_section
 from app.models.booking_item import SQbooking_items
 
@@ -17,8 +17,8 @@ def select_seats_and_create_summary(booking_data, current_user_id, db):
     if not show:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Show not found")
     
-    seats = db.query(SQshow_seats).filter( SQshow_seats.show_id == booking_data.show_id,SQshow_seats.show_seat_id.in_(booking_data.seat_ids) ).all()
-    if len(seats) != len(booking_data.seat_ids):
+    seats = db.query(SQshow_seats).filter(SQshow_seats.show_id == booking_data.show_id,SQshow_seats.show_seat_id.in_(booking_data.show_seat_id)).all()
+    if len(seats) != len(booking_data.show_seat_id):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="One or more selected seats are invalid for this show.")
 
     for seat in seats:
@@ -60,7 +60,7 @@ def select_seats_and_create_summary(booking_data, current_user_id, db):
 
 
 # modify booking items
-def delete_booking_item(booking_id: int, booking_item_id: int, current_user_id: int, db: Session):
+def delete_booking_item(booking_id: UUID, booking_item_id: UUID, current_user_id: UUID, db: Session):
     booking = db.query(SQbooking_section).filter(SQbooking_section.booking_id == booking_id,SQbooking_section.user_id == current_user_id).first()
     if not booking:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Booking section not found or unauthorized.")

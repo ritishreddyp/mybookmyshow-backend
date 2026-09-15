@@ -4,7 +4,7 @@ from uuid import UUID
 
 class BookingCreate(BaseModel):
     show_id : UUID
-    seat_ids : list[int]
+    show_seat_id : list[int]
 
 class BookingStatusUpdate(BaseModel):
     booking_status: str

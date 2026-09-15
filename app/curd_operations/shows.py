@@ -33,25 +33,25 @@ def create_show(show: ShowCreate, db: Session):
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Language not found")
 
     #time caluculation btwn shows
-    new_start_time = datetime.combine(show.show_date, show.show_time)
+    new_start_time = datetime.combine(show.show_date, show.show_time).replace(tzinfo=None)
     buffer_minutes = 20 
     new_end_time = new_start_time + timedelta(minutes=movie.duration_minutes + buffer_minutes)
 
-    existing_shows = db.query(SQshows).filter(SQshows.screen_id == screen.id).all()
+    existing_shows = db.query(SQshows).filter(SQshows.screen_id == screen.screen_id).all()
     for existing in existing_shows:
         existing_movie = db.query(SQmovies).filter(SQmovies.movie_id == existing.movie_id).first()
 
         if not existing_movie:
             continue
 
-        existing_start_time = datetime.combine(existing.show_date, existing.show_time)
+        existing_start_time = existing_start_time = datetime.combine(existing.show_date, existing.show_time).replace(tzinfo=None)
         existing_end_time = existing_start_time + timedelta(minutes=existing_movie.duration_minutes + buffer_minutes)
         if (existing_start_time < new_end_time) and (existing_end_time > new_start_time):
             raise HTTPException( status.HTTP_400_BAD_REQUEST, detail=f"Screen conflict: Slot occupied  ({existing_start_time.time()} - {existing_end_time.time()})." )
 
     new_show = SQshows(
         movie_id=show.movie_id,
-        screen_id=screen.id,
+        screen_id=screen.screen_id,
         language_id=show.language_id,
         show_date=show.show_date,
         show_time=show.show_time,
@@ -63,7 +63,7 @@ def create_show(show: ShowCreate, db: Session):
         db.commit()
         db.refresh(new_show)
 
-        generate_show_seats_for_show(show_id=new_show.show_id, screen_id=screen.id,  base_price=show.base_price, db=db)
+        generate_show_seats_for_show(show_id=new_show.show_id, screen_id=screen.screen_id,  base_price=show.base_price, db=db)
 
     except Exception as e:
         db.rollback()
@@ -120,8 +120,7 @@ def get_shows(
     language_id: int | None = None, 
     db: Session = None):
 
-    query = db.query(SQshows).join(SQscreens, SQshows.screen_id == SQscreens.id).join(SQtheaters, SQscreens.theater_id == SQtheaters.theater_id)
-
+    query = db.query(SQshows).join(SQscreens, SQshows.screen_id == SQscreens.screen_id).join(SQtheaters, SQscreens.theater_id == SQtheaters.theater_id)
     if city_id:
         query = query.filter(SQtheaters.city_id == city_id)
     if theater_id:

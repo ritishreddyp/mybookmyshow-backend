@@ -1,9 +1,7 @@
-from pydantic import BaseModel,EmailStr
+from pydantic import BaseModel
 from uuid import UUID
 
 #theater admin
-class TheaterWithAdminCreate(BaseModel):
-    city_id: UUID
+class TheaterAdminCreate(BaseModel):
     theater_id: UUID
-    admin_username: EmailStr
     admin_password: str

@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.models.theaters import SQtheaters
 from app.schemas.theatres import TheatreCreate,TheatreUpdate,TheatreDetails
@@ -8,24 +9,26 @@ from app.models.city import SQcity
 # -----------------------------------------------------------theaters-------------------------------------------------------------- 
 
 # to create theaters 
-def create_theater(theater: TheatreCreate, db: Session):
-    city = db.query(SQcity).filter(SQcity.city_id == theater.city_id).first()
-    if not city:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="City not found")
-
-    new_theater = SQtheaters(**theater.model_dump())
-
+def create_new_theater(payload: TheatreCreate, db: Session):
     try:
+        new_theater = SQtheaters(
+            city_id=payload.city_id,
+            theater_name=payload.theater_name,
+            address=payload.address,
+            status=payload.status )
         db.add(new_theater)
         db.commit()
         db.refresh(new_theater)
-
+        
+        return new_theater
+        
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Invalid city_id provided. City does not exist.")
+    
     except Exception as e:
         db.rollback()
-        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to create theater: {e}")
-
-    return "Theater added successfully"
-
+        raise HTTPException( status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"An error occurred while creating the theater: {str(e)}")
 
 # to update theaters
 def update_theater(theater_id: int, theater_update: TheatreUpdate, db: Session):
@@ -57,7 +60,6 @@ def delete_theater(theater_id: int, db: Session):
 
     try:
         theater.is_active = False
-        db.delete(theater)
         db.commit()
 
     except Exception as e:

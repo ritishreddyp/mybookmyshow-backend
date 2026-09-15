@@ -15,6 +15,12 @@ router = APIRouter()
 def list_cities(db: Session = Depends(get_db)):
     return get_all_cities(db)
 
+# admin access
+@router.get("/inactive")
+def list_inactive_cities(db: Session = Depends(get_db), current_user = Depends(require_role(["admin"]))):
+    return get_inactive_cities(db)
+
+# public access 
 @router.get("/{city_id}")
 def select_city(city_id: UUID , db: Session = Depends(get_db)):
     return get_city_id(city_id, db)
@@ -22,19 +28,15 @@ def select_city(city_id: UUID , db: Session = Depends(get_db)):
 
 # admin access
 @router.post("/")
-def add_city(city: CityCreate, db: Session = Depends(require_role(["admin"]))):
+def add_city(city: CityCreate, db: Session =Depends(get_db),current_user = Depends(require_role(["admin"]))):
     return create_city(city, db)
 
 @router.delete("/{city_id}")
-def remove_city(city_id: UUID, db: Session = Depends(require_role(["admin"]))):
+def remove_city(city_id: UUID, db: Session =Depends(get_db),current_user = Depends(require_role(["admin"]))):
     return delete_city(city_id,db)
 
-@router.get("/inactive")
-def list_inactive_cities(db: Session = Depends(require_role(["admin"]))):
-    return get_inactive_cities(db)
-
 @router.patch("/{city_id}/activate")
-def activate_city(city_id: UUID, db: Session = Depends(require_role(["admin"]))):
+def activate_city(city_id: UUID, db: Session =Depends(get_db),current_user = Depends(require_role(["admin"]))):
     return restore_city(city_id, db)
 
 

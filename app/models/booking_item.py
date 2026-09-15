@@ -11,7 +11,7 @@ class SQbooking_items(Base):
 
     booking_item_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     booking_id = Column(UUID(as_uuid=True), ForeignKey("BookingSection.booking_id"), nullable=False)
-    show_seat_id = Column(UUID(as_uuid=True), ForeignKey("ShowSeats.show_seat_id"), nullable=False)
+    show_seat_id = Column(Integer, ForeignKey("ShowSeats.show_seat_id"), nullable=False)
     price = Column(Float, nullable=False)
     created_at = Column(DateTime, default=datetime.now, nullable=False)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now, nullable=False)

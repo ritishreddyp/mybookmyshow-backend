@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from uuid import UUID
 
 from app.models.screens import SQscreens
 from app.schemas.screens import ScreenCreate,ScreenUpdate,ScreenDetails
@@ -10,17 +11,13 @@ from app.models.theaters import SQtheaters
 #-------------------------------------------------------screens---------------------------------------------------
 
 #to add screens to theater 
-def add_screen_to_theater(theater_id: int, screen_name: str, screen_type: str, db: Session):
+def add_screen_to_theater(theater_id: UUID, screen_name: str, screen_type: str, db: Session):
     theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
     if not theater:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
 
-    max_id = db.query(func.max(SQscreens.screen_id)).filter(SQscreens.theater_id == theater_id).scalar()
-    next_screen_id = (max_id or 0) + 1
-
     new_screen = SQscreens(
         theater_id=theater_id,
-        screen_id=next_screen_id,  
         screen_name=screen_name,
         screen_type=screen_type,
         status="active" )
@@ -39,7 +36,7 @@ def add_screen_to_theater(theater_id: int, screen_name: str, screen_type: str, d
 
 
 # Update Screens
-def update_screen(screen_id: int, screen_update: ScreenUpdate, db: Session):
+def update_screen(screen_id: UUID, screen_update: ScreenUpdate, db: Session):
     screen = db.query(SQscreens).filter(SQscreens.screen_id == screen_id).first()
     if not screen:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found")
@@ -61,7 +58,7 @@ def update_screen(screen_id: int, screen_update: ScreenUpdate, db: Session):
 
 
 # Delete Screen
-def delete_screen(screen_id: int, db: Session):
+def delete_screen(screen_id: UUID, db: Session):
     screen = db.query(SQscreens).filter(SQscreens.screen_id == screen_id).first()
     if not screen:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found")
@@ -78,7 +75,7 @@ def delete_screen(screen_id: int, db: Session):
 
 
 # to get active screens in theater
-def get_screens_by_theater(theater_id: int, db: Session):
+def get_screens_by_theater(theater_id: UUID, db: Session):
     theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
     if not theater:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
@@ -87,7 +84,7 @@ def get_screens_by_theater(theater_id: int, db: Session):
 
 
 #to get inactive screens
-def get_inactive_screens_by_theater(theater_id: int, db: Session):
+def get_inactive_screens_by_theater(theater_id: UUID, db: Session):
     theater = db.query(SQtheaters).filter(SQtheaters.theater_id == theater_id).first()
     if not theater:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Theater not found")
@@ -96,7 +93,7 @@ def get_inactive_screens_by_theater(theater_id: int, db: Session):
 
 
 # to activate screens
-def activate_screen(screen_id: int, db: Session):
+def activate_screen(screen_id: UUID, db: Session):
     screen = db.query(SQscreens).filter(SQscreens.screen_id == screen_id).first()
     if not screen:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Screen not found")

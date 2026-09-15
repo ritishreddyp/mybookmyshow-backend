@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from datetime import datetime
+from uuid import UUID
 
 from app.models.show_seats import SQshow_seats
 from app.schemas.show_seats import SeatBookingRequest
@@ -11,13 +12,13 @@ from app.models.shows import SQshows
 #--------------------------------------------------------show_seats----------------------------------------------------
 
 # to genrate seats for show 
-def generate_show_seats_for_show(show_id: int, screen_id: int, base_price: float, db: Session):
+def generate_show_seats_for_show(show_id:UUID , screen_id: UUID, base_price: float, db: Session):
     physical_seats = db.query(SQseats).filter(SQseats.screen_id == screen_id).all()
     if not physical_seats:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail="Cannot schedule show: No physical seats found for this screen. Create screen seats first.")
 
     show_seats_list = [
-        SQshow_seats(show_id=show_id,seat_id=seat.id,  price=base_price,status="available")
+        SQshow_seats(show_id=show_id,seat_id=seat.seat_id,  price=base_price,status="available")
         for seat in physical_seats
     ]
 
@@ -26,7 +27,7 @@ def generate_show_seats_for_show(show_id: int, screen_id: int, base_price: float
 
 
 # to view show seats 
-def get_show_seats(show_id: int, db: Session):
+def get_show_seats(show_id: UUID, db: Session):
     show = db.query(SQshows).filter(SQshows.show_id == show_id).first()
     if not show:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Show not found")
@@ -39,11 +40,9 @@ def get_show_seats(show_id: int, db: Session):
         seat.lock_expires_at = None
     
     if expired_locks:
-
         db.commit()
 
-    show_seats_data = db.query(SQshow_seats, SQseats).join( SQseats, SQshow_seats.seat_id == SQseats.id).filter(SQshow_seats.show_id == show_id).all()
-
+    show_seats_data = db.query(SQshow_seats, SQseats).join(SQseats, SQshow_seats.seat_id == SQseats.seat_id).filter(SQshow_seats.show_id == show_id,SQshow_seats.is_active == True  ).all()
     if not show_seats_data:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="No seats found for this show. Ensure physical seats exist for this screen before scheduling." )
     
@@ -71,3 +70,52 @@ def get_show_seats(show_id: int, db: Session):
 
     return result
 
+# to modify show seats 
+def update_show_seat(show_seat_id: int, new_status: str | None, new_price: float | None, db: Session):
+    seat = db.query(SQshow_seats).filter(SQshow_seats.show_seat_id == show_seat_id).first()
+    if not seat:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Show seat not found")
+
+    if new_status is not None:
+        seat.status = new_status
+    if new_price is not None:
+        seat.price = new_price
+
+    try:
+        db.commit()
+        db.refresh(seat)
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update show seat: {e}")
+
+    return {"message": f"Successfully updated show seat {show_seat_id}"}
+
+# delete show seats 
+def delete_show_seat(show_id: UUID, show_seat_id: int, db: Session):
+    seat = db.query(SQshow_seats).filter(
+        SQshow_seats.show_id == show_id,
+        SQshow_seats.show_seat_id == show_seat_id
+    ).first()
+
+    if not seat:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Show seat not found for this specific show")
+
+    try:
+        seat.is_active = False
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete show seat: {e}")
+
+    return {"message": f"Successfully deleted show seat {show_seat_id} for show {show_id}"}
+
+# recover seat
+
+def restore_show_seat(show_id: UUID, show_seat_id: int, db: Session):
+    seat = db.query(SQshow_seats).filter(SQshow_seats.show_id == show_id, SQshow_seats.show_seat_id == show_seat_id).first()
+    if not seat:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Show seat not found")
+
+    seat.is_active = True
+    db.commit()
+    return {"message": f"Show seat {show_seat_id} has been restored successfully."}

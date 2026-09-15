@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
+from uuid import UUID
 from app.core.db import get_db
 from app.api.deps import require_role
 
@@ -16,18 +16,18 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
 # admin access 
 @router.get("/")
-def get_users(db:Session = Depends(require_role(["admin"]))):
+def get_users(db:Session =Depends(get_db), current_user = Depends(require_role(["admin"]))):
     return get_all_users(db)
 
 @router.delete("/{user_id}")
-def remove_user(user_id: int,db: Session = Depends(require_role(["admin"]))):
+def remove_user(user_id:UUID ,db: Session = Depends(get_db), current_user = Depends(require_role(["admin","public"]))):
     return delete_user(user_id, db)
 
 # user - admin access
 @router.get("/{user_id}")
-def get_user_by_id(user_id:int,db:Session = Depends(require_role(["public", "admin"]))):
+def get_user_by_id(user_id:UUID,db:Session = Depends(get_db), current_user = Depends(require_role(["public", "admin"]))):
     return get_user_id(user_id,db)
 
 @router.patch("/{user_id}")
-def update_user(user_id: int,user: UserUpdate,db: Session = Depends(require_role(["public", "admin"]))):
+def update_user(user_id: UUID,user: UserUpdate,db: Session = Depends(get_db), current_user = Depends(require_role(["public", "admin"]))):
     return update_user_details(user_id, user, db)
